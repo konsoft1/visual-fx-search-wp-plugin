@@ -1,0 +1,57 @@
+.search-box {
+    padding: 10px 0 10px 0;
+    text-align: center;
+    display: flex;
+    color: white;
+    gap: 10px;
+    max-width: 400px;
+    margin: auto;
+}
+
+.search-input {
+    flex-grow: 1;
+    background: transparent;
+    border: solid 1px white;
+    border-radius: 5px;
+    color: white;
+}
+
+.fx-container {
+    margin: 0;
+    overscroll-behavior: none;
+    overflow: hidden;
+    background-color: #000011;
+    color: #DDD;
+    font-family: Helvetica;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw !important;
+    z-index: -1;
+}
+
+.fx-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100% !important;
+}
+
+.empty-p {
+    text-align: center;
+    color: white;
+    margin-top: 300px;
+}
+
+.pagination {
+    color: white;
+    text-align: center;
+}
+
+.pagination a {
+    color: #d1d1c9;
+}
