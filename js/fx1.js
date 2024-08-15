@@ -7,10 +7,10 @@ const graphElement = document.getElementById("fx-layer");
 
 if (graphElement) {
     const deg2rad = deg => deg * Math.PI / 180;
-    
+
     const initialData = { nodes: [{ id: 0 }], links: [] };
     const distance = 2000;
-    
+
     function lcg(seed) {
         const a = 1664525;
         const c = 1013904223;
@@ -21,13 +21,11 @@ if (graphElement) {
             return state / m;
         };
     }
-    
+
     const N = 40;
 
     const graph = ForceGraph3D()(document.getElementById("fx-layer"))
-        .enableNodeDrag(false)
         .enableNavigationControls(false)
-        .enablePointerInteraction(false)
         .showNavInfo(false)
         .cameraPosition({ z: distance })
         .nodeRelSize(4)
@@ -36,7 +34,6 @@ if (graphElement) {
         .linkDirectionalParticles(5)
         .linkDirectionalParticleWidth(5)
         .backgroundColor('rgba(0,0,0,0)');
-
 
     const renderer = graph.renderer();
     renderer.setClearColor(0x000000, 0);
@@ -57,7 +54,7 @@ if (graphElement) {
 
         graph.cameraPosition({
             x: distance * 3 / 5 * Math.sin(deg2rad(currentAngle)),
-            y: distance * 1 / 5,
+            y: 0,
             z: distance * 3 / 5 * Math.cos(deg2rad(currentAngle))
         });
 
@@ -89,14 +86,30 @@ if (graphElement) {
             let nodes = [];
             const links = [];
 
-            for (let idx = 0; idx < sds.length; idx++) {
+            const interval = graphElement.clientHeight / (sds.length + 1);
 
+            for (let idx = 0; idx < sds.length; idx++) {
                 let random = lcg(Math.round(sds[idx] * 100) + idx);
-                const newnodes = [...Array(N).keys()].map(i => ({
-                    id: i + idx * N,
-                    val: (random() * 1.5) + 1,
-                    color: colors[idx]
-                }));
+                const centerY = idx * interval - (sds.length - 1) * interval / 2; // Center position for each group on the y-axis
+                const newnodes = [...Array(N).keys()].map(i => {
+                    const node = {
+                        id: i + idx * N,
+                        val: (random() * 1.5) + 1,
+                        color: colors[idx]
+                    };
+                    if (i === 0) {
+                        // Fix the central node for the group
+                        node.x = 0;
+                        node.y = centerY;
+                        node.z = 0;
+                    } else {
+                        // Place other nodes randomly around the central node
+                        node.x = (random() - 0.5) * 200; // Spread nodes on the x-axis
+                        node.y = centerY + (random() - 0.5) * 200; // Spread nodes on the y-axis
+                        node.z = (random() - 0.5) * 200; // Spread nodes on the z-axis
+                    }
+                    return node;
+                });
                 nodes = nodes.concat(newnodes);
 
                 newnodes.forEach(node => {
@@ -113,7 +126,6 @@ if (graphElement) {
 
             return { nodes, links };
         };
-
 
         const gData = graphData(document.getElementById('fx-layer').getAttribute('data-seed'));
         graph.graphData(gData)
