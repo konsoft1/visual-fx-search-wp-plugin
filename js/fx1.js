@@ -23,6 +23,8 @@ if (graphElement) {
     }
 
     const N = 30;
+    
+    const radius = 100;
 
     const graph = ForceGraph3D()(document.getElementById("fx-layer"))
         .enableNavigationControls(false)
@@ -35,8 +37,6 @@ if (graphElement) {
         .backgroundColor('rgba(0,0,0,0)');
         
     const distance = 1600 / (2 * Math.atan((graph.camera().fov / 2) * (Math.PI / 180)));
-    graph
-        .cameraPosition({ z: distance });
 
     graph
         .d3Force('center', null);
@@ -60,8 +60,10 @@ if (graphElement) {
 
         graph.cameraPosition({
             x: distance * Math.sin(deg2rad(currentAngle)),
-            y: 0,
             z: distance * Math.cos(deg2rad(currentAngle))
+        }, {
+            x: radius * 3 * Math.sin(deg2rad(currentAngle + 90)),
+            z: radius * 3 * Math.cos(deg2rad(currentAngle + 90))
         });
 
         currentAngle += 0.5;
@@ -115,7 +117,7 @@ if (graphElement) {
         return force;
     }
 
-    function customManyBodyForce() {
+    /* function customManyBodyForce() {
         const force = d3.forceManyBody();
         const originalForce = force.initialize;
 
@@ -169,7 +171,7 @@ if (graphElement) {
                 }
             }
         }
-    }
+    } */
 
     function redraw() {
         const colors = ['#3ff', '#ff3', '#f3f', '#f33', '#33f'];
@@ -178,7 +180,6 @@ if (graphElement) {
             const sds = seeds.split(' ');
             let nodes = [];
             const links = [];
-            const radius = 100;
 
             const interval = radius * 3;//graphElement.clientHeight / (sds.length + 1);
 
