@@ -10,7 +10,6 @@ if (graphElement) {
     const deg2rad = deg => deg * Math.PI / 180;
 
     const initialData = { nodes: [{ id: 0 }], links: [] };
-    const distance = 2000;
 
     function lcg(seed) {
         const a = 1664525;
@@ -23,18 +22,21 @@ if (graphElement) {
         };
     }
 
-    const N = 40;
+    const N = 30;
 
     const graph = ForceGraph3D()(document.getElementById("fx-layer"))
         .enableNavigationControls(false)
         .showNavInfo(false)
-        .cameraPosition({ z: distance })
         .nodeRelSize(4)
         .nodeOpacity(1)
         .linkWidth(5)
         .linkDirectionalParticles(5)
         .linkDirectionalParticleWidth(5)
         .backgroundColor('rgba(0,0,0,0)');
+        
+    const distance = 1600 / (2 * Math.atan((graph.camera().fov / 2) * (Math.PI / 180)));
+    graph
+        .cameraPosition({ z: distance });
 
     graph
         .d3Force('center', null);
@@ -57,9 +59,9 @@ if (graphElement) {
         requestAnimationFrame(animate);
 
         graph.cameraPosition({
-            x: distance * 3 / 5 * Math.sin(deg2rad(currentAngle)),
+            x: distance * Math.sin(deg2rad(currentAngle)),
             y: 0,
-            z: distance * 3 / 5 * Math.cos(deg2rad(currentAngle))
+            z: distance * Math.cos(deg2rad(currentAngle))
         });
 
         currentAngle += 0.5;
@@ -178,7 +180,7 @@ if (graphElement) {
             const links = [];
             const radius = 100;
 
-            const interval = graphElement.clientHeight / (sds.length + 1);
+            const interval = radius * 3;//graphElement.clientHeight / (sds.length + 1);
 
             for (let idx = 0; idx < sds.length; idx++) {
                 let random = lcg(Math.round(sds[idx] * 100) + idx);
@@ -221,11 +223,11 @@ if (graphElement) {
 
                 graph.d3Force('radial' + (idx + 1), forceRadial3D(0, 0, centerY, 0, d => d.group === idx + 1 ? 0.1 : 0));
 
-                const sphereGeometry1 = new THREE.SphereGeometry(radius, 16, 16);
+                const sphereGeometry1 = new THREE.SphereGeometry(radius, 8, 8);
                 const sphereMaterial1 = new THREE.MeshBasicMaterial({
-                    color: 0xff0000,
+                    color: 0x0202ff,
                     wireframe: true,
-                    opacity: 0.1,
+                    opacity: 0.15,
                     transparent: true
                 });
                 const sphere = new THREE.Mesh(sphereGeometry1, sphereMaterial1);
@@ -247,7 +249,7 @@ if (graphElement) {
             .distance(link => link.length);
 
         graph.d3Force('charge')
-            .distanceMax(180);
+            .distanceMax(200);
 
         //graph.d3Force('charge', customManyBodyForce());
         //graph.d3Force('customGroupSeparation', (alpha) => groupSeparationForce(alpha));
