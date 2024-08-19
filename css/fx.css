@@ -82,10 +82,12 @@ body {
     border-left: none;
     padding: 5px 20px 5px 80px;
     box-sizing: border-box;
-    overflow: auto;
+    overflow: hidden;
     scrollbar-width: none;
     cursor: pointer;
     transition: .3s;
+    display: flex;
+    flex-direction: column;
 }
 
 .post:hover {
@@ -99,6 +101,7 @@ body {
     padding: 5px 0 5px 8px;
     text-shadow: 0 0px 12px #7b71ff;
     transition: .3s;
+    flex-shrink: 0;
 }
 
 .post:hover .post-title {
@@ -110,4 +113,18 @@ body {
     font-size: var(--wp--preset--font-size--small);
     margin-block-end: 0;
     text-indent: 8px;
+    position: relative;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.post p::after {
+    content: "";
+    width: 100%;
+    height: 10px;
+    box-shadow: 0 -5px 5px 0 #000011 inset;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 1;
 }
