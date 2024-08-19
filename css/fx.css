@@ -76,12 +76,11 @@ body {
 }
 
 .post {
-    padding-left: 80px;
     flex-grow: 0;
     border: solid 1px #7a6aff6b;
     border-radius: 10px;
     border-left: none;
-    padding: 5px;
+    padding: 5px 20px 5px 80px;
     box-sizing: border-box;
     overflow: auto;
     scrollbar-width: none;
