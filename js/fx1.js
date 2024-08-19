@@ -7,9 +7,26 @@ import * as d3 from '//cdn.skypack.dev/d3@6';
 const graphElement = document.getElementById("fx-layer");
 
 if (graphElement) {
-    const deg2rad = deg => deg * Math.PI / 180;
 
-    const initialData = { nodes: [{ id: 0 }], links: [] };
+    // Graph values
+    const N = 30;
+    const radius = 100;
+    const forceMaxD = 100;
+
+    // Camera values
+    let distance = 1000;//1600 / (2 * Math.atan((graph.camera().fov / 2) * (Math.PI / 180)));
+    let ratio = 1;
+
+    // Metric values
+    let vh_u = 0;
+    let firstCenterY_u = 0;
+    let postGap_u = 0;
+    let postW_u = 0;
+    let paddingX_u = 0;
+
+    // Helpers
+    const deg2rad = deg => deg * Math.PI / 180;
+    //const initialData = { nodes: [{ id: 0 }], links: [] };
 
     function lcg(seed) {
         const a = 1664525;
@@ -22,10 +39,7 @@ if (graphElement) {
         };
     }
 
-    const N = 30;
-    
-    const radius = 100;
-
+    // Graph init
     const graph = ForceGraph3D()(document.getElementById("fx-layer"))
         .enableNavigationControls(false)
         .showNavInfo(false)
@@ -36,10 +50,95 @@ if (graphElement) {
         .linkDirectionalParticleWidth(5)
         .backgroundColor('rgba(0,0,0,0)');
         
-    const distance = 1600 / (2 * Math.atan((graph.camera().fov / 2) * (Math.PI / 180)));
+    graph.d3Force('center', null);
+    
+    // Animation
+    const minOpacity = 0.15;
+    const maxOpacity = 0.5;
+    const gradStd = 0.005;
+    let opacity = minOpacity;
+    let grad = gradStd;
+    let currentAngle = 0;
 
-    graph
-        .d3Force('center', null);
+    const postElems = document.getElementsByClassName('post');
+    const postCnt = postElems.length;
+    
+    // Spheres
+    const sphere = [];
+    for (let i = 0; i < postCnt; i++) {
+        const sphereGeometry = new THREE.SphereGeometry(radius, 8, 8);
+        const sphereMaterial = new THREE.MeshBasicMaterial({
+            color: 0x0202ff,
+            wireframe: true,
+            opacity: minOpacity,
+            transparent: true
+        });
+        sphere.push(new THREE.Mesh(sphereGeometry, sphereMaterial));
+    }
+    
+    // Posts
+    let selected = -1;
+    for (let i = 0; i < postCnt; i++) {
+        postElems[i].onmouseenter = function() {
+            selected = i;
+            opacity = minOpacity;
+        }
+
+        postElems[i].onmouseleave = function() {
+            selected = -1;
+            sphere[i].material.opacity = minOpacity;
+        }
+    };
+
+    // Metrics
+    function recalc() {
+        const vh_px = window.innerHeight;
+        const padding_px = 34;
+        const paginatorH_px = 40;
+        const postGap_px = 6;
+        const paddingX_px = 30;
+        const searchform = document.getElementById('user-post-form');
+        const offsetY_px = searchform.offsetTop + searchform.clientHeight;
+        const postsContainer = document.getElementById('posts-container');
+        postsContainer.style.height = `calc(100vh - ${offsetY_px + 1}px)`;
+        const postsH_px = vh_px - offsetY_px - 1 - padding_px * 2 - paginatorH_px;
+        const firstCenterY_px = offsetY_px + 1 + padding_px;
+        const postsH_u = radius * 2 * 5 + forceMaxD * 5;
+        ratio = 1.0 * postsH_u / postsH_px;
+        vh_u = vh_px * ratio;
+        graph.camera().fov = 10;
+        distance = vh_u / (2 * Math.atan((graph.camera().fov / 2) * (Math.PI / 180)));
+        firstCenterY_u = ratio * firstCenterY_px;
+        postGap_u = ratio * postGap_px;
+        const postW_px = postsContainer.clientWidth;
+        postW_u = ratio * postW_px;
+        paddingX_u = ratio * paddingX_px;
+
+        const radius_px = radius / ratio;
+        for (let i = 0; i < postCnt; i++) {
+            postElems[i].style.marginLeft = (radius_px + paddingX_px) + 'px';
+            postElems[i].style.paddingLeft = radius_px * 2 + 'px';
+            postElems[i].style.height = (postsH_px / 5 - postGap_px) + 'px';
+        };
+
+        /* const aspectRatio = window.innerWidth / window.innerHeight;
+        const camera = new THREE.OrthographicCamera(
+            -aspectRatio * vh_u / 2,  // Left
+            aspectRatio * vh_u / 2,   // Right
+            vh_u / 2,                 // Top
+            -vh_u / 2,                // Bottom
+            0.1,                 // Near
+            10000                // Far
+        );
+        graph.camera(camera); */
+        redraw();
+    }
+
+    recalc();
+
+    window.onresize = function () {
+        recalc();
+    }
 
     const renderer = graph.renderer();
     renderer.setClearColor(0x000000, 0);
@@ -54,7 +153,6 @@ if (graphElement) {
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 3, 1, 0);
     composer.addPass(bloomPass);
 
-    let currentAngle = 0;
     const animate = () => {
         requestAnimationFrame(animate);
 
@@ -62,11 +160,19 @@ if (graphElement) {
             x: distance * Math.sin(deg2rad(currentAngle)),
             z: distance * Math.cos(deg2rad(currentAngle))
         }, {
-            x: radius * 3 * Math.sin(deg2rad(currentAngle + 90)),
-            z: radius * 3 * Math.cos(deg2rad(currentAngle + 90))
+            x: (postW_u / 2 - radius * 2 - paddingX_u) * Math.sin(deg2rad(currentAngle + 90)),
+            z: (postW_u / 2 - radius * 2 - paddingX_u) * Math.cos(deg2rad(currentAngle + 90))
         });
 
         currentAngle += 0.5;
+
+        if (selected != -1) {
+            opacity += grad;
+            if (opacity >= maxOpacity) grad = -gradStd;
+            else if (opacity <= minOpacity) grad = gradStd;
+            
+            sphere[selected].material.opacity = opacity;
+        }
 
         composer.render();
     };
@@ -174,23 +280,24 @@ if (graphElement) {
     } */
 
     function redraw() {
-        const colors = ['#3ff', '#ff3', '#f3f', '#f33', '#33f'];
+        //const colors = ['#3ff', '#ff3', '#f3f', '#f33', '#33f'];
 
         const graphData = (seeds) => {
             const sds = seeds.split(' ');
             let nodes = [];
             const links = [];
 
-            const interval = radius * 3;//graphElement.clientHeight / (sds.length + 1);
+            const interval = radius * 2 + forceMaxD;//graphElement.clientHeight / (sds.length + 1);
 
             for (let idx = 0; idx < sds.length; idx++) {
                 let random = lcg(Math.round(sds[idx] * 100) + idx);
-                const centerY = idx * interval - (sds.length - 1) * interval / 2; // Center position for each group on the y-axis
+                //const centerY = idx * interval - (sds.length - 1) * interval / 2; // Center position for each group on the y-axis
+                const centerY = vh_u / 2 - interval / 2 - firstCenterY_u - idx * interval + postGap_u; // Center position for each group on the y-axis
                 const newnodes = [...Array(N).keys()].map(i => {
                     const node = {
                         id: i + idx * N,
                         val: (random() * 1.5) + 1,
-                        color: colors[idx],
+                        color: '#33f',//colors[idx],
                         group: idx + 1
                     };
                     if (i === 0) {
@@ -224,16 +331,8 @@ if (graphElement) {
 
                 graph.d3Force('radial' + (idx + 1), forceRadial3D(0, 0, centerY, 0, d => d.group === idx + 1 ? 0.1 : 0));
 
-                const sphereGeometry1 = new THREE.SphereGeometry(radius, 8, 8);
-                const sphereMaterial1 = new THREE.MeshBasicMaterial({
-                    color: 0x0202ff,
-                    wireframe: true,
-                    opacity: 0.15,
-                    transparent: true
-                });
-                const sphere = new THREE.Mesh(sphereGeometry1, sphereMaterial1);
-                sphere.position.set(0, centerY, 0);
-                graph.scene().add(sphere);
+                sphere[idx].position.set(0, centerY, 0);
+                graph.scene().add(sphere[idx]);
             }
 
             return { nodes, links };
@@ -255,6 +354,43 @@ if (graphElement) {
         //graph.d3Force('charge', customManyBodyForce());
         //graph.d3Force('customGroupSeparation', (alpha) => groupSeparationForce(alpha));
 
+        /* 
+        // Test Ruler
+        const yAxisGeometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, -vh_u / 2, 0),  // Start point at Y = -250
+            new THREE.Vector3(0, vh_u / 2, 0)    // End point at Y = 250
+        ]);
+
+        // Create a material for the line
+        const yAxisMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });  // Green color
+
+        // Create the line using the geometry and material
+        const yAxis = new THREE.Line(yAxisGeometry, yAxisMaterial);
+
+        // Add the Y-axis to the scene
+        scene.add(yAxis);
+
+        // Add ruler intervals every 50 units
+        const intervalLength = 50;  // Length of the interval markers
+        const intervalDistance = 50;  // Distance between intervals
+
+        for (let i = -vh_u / 2; i <= vh_u / 2; i += intervalDistance) {
+            const intervalGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(-intervalLength / 2, i, 0),
+                new THREE.Vector3(intervalLength / 2, i, 0)
+            ]);
+
+            const intervalLine = new THREE.Line(intervalGeometry, yAxisMaterial);
+            scene.add(intervalLine);
+        }
+
+        const yAxisMaterial1 = new THREE.LineBasicMaterial({ color: 0xff0000 });  // Green color
+        const intervalGeometry1 = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(-intervalLength / 2, 0, 0),
+            new THREE.Vector3(intervalLength / 2, 0, 0)
+        ]);
+        const intervalLine1 = new THREE.Line(intervalGeometry1, yAxisMaterial1);
+        scene.add(intervalLine1); */
     }
 
     redraw();

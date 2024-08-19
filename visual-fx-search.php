@@ -51,18 +51,7 @@ function visual_fx_search_shortcode($atts)
         ?>
             <div id="fx-layer" class="fx-layer" data-seed="<?= implode(' ', $seeds) ?>"></div>
     </div>
-    <?php
-            // Pagination
-    ?>
-    <div class="pagination">
-        <?php
-            echo paginate_links(array(
-                'total' => $query->max_num_pages,
-                'current' => $paged
-            ));
-        ?>
-    </div>
-    <div class="posts">
+    <div id="posts-container" class="posts">
         <?php
             $query = new WP_Query($args);
             while ($query->have_posts()) {
@@ -75,6 +64,17 @@ function visual_fx_search_shortcode($atts)
         <?php
             }
         ?>
+        <?php
+                // Pagination
+        ?>
+        <div class="pagination">
+            <?php
+                echo paginate_links(array(
+                    'total' => $query->max_num_pages,
+                    'current' => $paged
+                ));
+            ?>
+        </div>
     </div>
 <?php
         elseif (!empty($search_keyword)) :
