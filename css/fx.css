@@ -81,9 +81,10 @@ body {
     border: solid 1px #7a6aff6b;
     border-radius: 10px;
     border-left: none;
+    padding: 5px;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
+    overflow: auto;
+    scrollbar-width: none;
     cursor: pointer;
     transition: .3s;
 }
@@ -94,10 +95,10 @@ body {
 }
 
 .post .post-title {
+    font-size: var(--wp--preset--font-size--medium);
     color: #d5d6ff;
-    padding-left: 8px;
+    padding: 5px 0 5px 8px;
     text-shadow: 0 0px 12px #7b71ff;
-    flex-shrink: 0;
     transition: .3s;
 }
 
@@ -107,8 +108,7 @@ body {
 
 .post p {
     margin-top: 0;
-    overflow: hidden;
-    overflow-y: auto;
-    scrollbar-width: none;
-    margin-right: 1em;
+    font-size: var(--wp--preset--font-size--small);
+    margin-block-end: 0;
+    text-indent: 8px;
 }
