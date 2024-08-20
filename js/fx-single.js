@@ -11,6 +11,7 @@ if (graphElement) {
     // Graph values
     const N = 30;
     const radius = 100;
+    const radiusShrink = 0.8;
     const forceMaxD = 100;
 
     // Camera values
@@ -83,7 +84,7 @@ if (graphElement) {
 
     // Metrics
     function recalc() {
-        const postPaddingLeftExtend = 1.1;
+        const postPaddingLeftExtend = 1;
         
         const vh_px = window.innerHeight;
         const titleblock = document.getElementById('title-block');
@@ -94,12 +95,14 @@ if (graphElement) {
         if (window.innerWidth < 800) {
             postLPadRatio = 1;
             postElem.style.paddingLeft = 0;
+            postElem.style.marginTop = postW_px + 'px';
         } else {
             postLPadRatio = 0.5;
             postElem.style.paddingLeft = postLPadRatio * postW_px * postPaddingLeftExtend + 'px';
+            postElem.style.marginTop = postW_px * postLPadRatio / 2 * (1 - radiusShrink) * 2 + 'px';
         }
-        const radius_px = postW_px * postLPadRatio / 2;
-        const centerY_px = offsetY_px + 1 + radius_px;
+        const radius_px = postW_px * postLPadRatio / 2 * radiusShrink;
+        const centerY_px = offsetY_px + 1 + postW_px * postLPadRatio / 2;
         ratio = 1.0 * radius / radius_px;
         vh_u = vh_px * ratio;
         //graph.camera().fov = 10;
@@ -107,12 +110,6 @@ if (graphElement) {
         centerY_u = centerY_px * ratio;
         offsetX_u = offsetX_px * ratio;
         postW_u = postW_px * ratio;
-
-        if (window.innerWidth < 800) {
-            postElem.style.marginTop = radius_px * 2 + 'px';
-        } else {
-            postElem.style.marginTop = 0;
-        }
 
         redraw();
     }
@@ -143,8 +140,8 @@ if (graphElement) {
             x: distance * Math.sin(deg2rad(currentAngle)),
             z: distance * Math.cos(deg2rad(currentAngle))
         }, {
-            x: (postW_u * (1 - postLPadRatio * 2) / 2 + radius) * Math.sin(deg2rad(currentAngle + 90)),
-            z: (postW_u * (1 - postLPadRatio * 2) / 2 + radius) * Math.cos(deg2rad(currentAngle + 90))
+            x: (postW_u * (1 - postLPadRatio * 2) / 2 + radius / radiusShrink) * Math.sin(deg2rad(currentAngle + 90)),
+            z: (postW_u * (1 - postLPadRatio * 2) / 2 + radius / radiusShrink) * Math.cos(deg2rad(currentAngle + 90))
         });
 
         currentAngle += 0.5;
