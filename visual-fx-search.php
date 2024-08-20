@@ -137,7 +137,10 @@ function visual_fx_search_shortcode($atts)
                 'total' => $query->max_num_pages,
                 'current' => $paged
             ));
+            $nonce = wp_create_nonce('download_posts_csv');
+            $url = admin_url('admin-post.php?action=download_posts_csv&nonce=' . $nonce);
             ?>
+            <a class="download" href="<?php echo esc_url($url) ?>">Download &darr;</a>
         </div>
     </div>
 <?php
@@ -183,6 +186,44 @@ function add_module_type_to_script($tag, $handle, $src)
     return $tag;
 }
 add_filter('script_loader_tag', 'add_module_type_to_script', 10, 3);
+
+// handle download
+function my_plugin_generate_csv() {
+    if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'download_posts_csv')) {
+        die('Security check failed');
+    }
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=posts.csv');
+
+    $output = fopen('php://output', 'w');
+
+    fputcsv($output, array('ID', 'Post Title', 'Post Date', 'Post Content'));
+
+    $args = array(
+        'posts_per_page' => -1,
+        'post_type' => 'post',
+        'post_status' => 'publish',
+        'category_name'  => 'visual-text'
+    );
+    $posts = get_posts($args);
+
+    foreach ($posts as $post) {
+        $post_content = $post->post_content;
+        $post_content = strip_shortcodes($post_content);
+        $post_content = wp_strip_all_tags($post_content);
+        $post_content = preg_replace("/\r\n|\r|\n/", "\n", $post_content);
+        $post_content = preg_replace("/\n+/", "\n", $post_content);
+        $post_content = trim($post_content);
+        fputcsv($output, array($post->ID, $post->post_title, $post->post_date, $post_content));
+    }
+
+    fclose($output);
+
+    exit;
+}
+add_action('admin_post_download_posts_csv', 'my_plugin_generate_csv');
+add_action('admin_post_nopriv_download_posts_csv', 'my_plugin_generate_csv');
 
 // handle post
 function handle_search_ajax()

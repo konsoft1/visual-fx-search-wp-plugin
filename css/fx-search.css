@@ -38,6 +38,11 @@ body {
     color: #d1d1c9;
 }
 
+.download {
+    color: white;
+    float: right;
+}
+
 .posts {
     color: white;
     margin-top: 44px;

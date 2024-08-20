@@ -54,8 +54,8 @@ if (graphElement) {
 
     // Animation
     const minOpacity = 0.15;
-    const maxOpacity = 0.5;
-    const gradStd = 0.005;
+    const maxOpacity = 0.25;
+    const gradStd = 0.00125;
     let opacity = minOpacity;
     let grad = gradStd;
     let currentAngle = 0;
@@ -250,7 +250,7 @@ if (graphElement) {
             graph.d3Force('radial1', forceRadial3D(0, 0, centerY, 0, d => d.group === 1 ? 0.1 : 0));
 
             sphere.position.set(0, centerY, 0);
-            graph.scene().add(sphere);
+            //graph.scene().add(sphere);
 
             return { nodes, links };
         };
