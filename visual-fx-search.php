@@ -140,7 +140,8 @@ function visual_fx_search_shortcode($atts)
             $nonce = wp_create_nonce('download_posts_csv');
             $url = admin_url('admin-post.php?action=download_posts_csv&nonce=' . $nonce);
             ?>
-            <a class="download" href="<?php echo esc_url($url) ?>">Download &darr;</a>
+            <a id="download-btn" class="download" href="javascript:download();" data-url="<?php echo esc_url($url) ?>" >Download &darr;</a>
+            <a id="download-link" href="#" hidden>Download &darr;</a>
         </div>
     </div>
 <?php
@@ -174,6 +175,7 @@ function enqueue_visual_fx_search_scripts()
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce'    => wp_create_nonce('custom-ajax-nonce')
     )); */
+        wp_enqueue_script('visual-fx-download-script', plugin_dir_url(__FILE__) . 'js/fx-download.js', array(), null, true);
     }
 }
 add_action('wp_enqueue_scripts', 'enqueue_visual_fx_search_scripts');
@@ -192,6 +194,7 @@ function my_plugin_generate_csv() {
     if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'download_posts_csv')) {
         die('Security check failed');
     }
+    $search_keyword = (isset($_GET['search_keyword'])) ? sanitize_text_field($_GET['search_keyword']) : '';
 
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=posts.csv');
@@ -204,7 +207,8 @@ function my_plugin_generate_csv() {
         'posts_per_page' => -1,
         'post_type' => 'post',
         'post_status' => 'publish',
-        'category_name'  => 'visual-text'
+        'category_name'  => 'visual-text',
+        's' => $search_keyword
     );
     $posts = get_posts($args);
 
