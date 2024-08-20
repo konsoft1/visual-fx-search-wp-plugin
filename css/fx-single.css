@@ -1,0 +1,27 @@
+.site-branding {
+    margin-top: 1rem;
+}
+
+.site-branding a {
+    color: white;
+    text-decoration: none;
+    margin-left: 1rem;
+}
+
+.post-title {
+    color: white;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.post-date {
+    color: white;
+    text-align: right;
+    flex-shrink: 0;
+    align-self: end;
+}
+
+.entry-content p {
+    color: white;
+    margin-left: 50% !important;
+}

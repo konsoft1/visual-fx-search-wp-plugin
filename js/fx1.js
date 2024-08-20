@@ -2,12 +2,12 @@ import { UnrealBloomPass } from './three@0.123.0/examples/jsm/postprocessing/Unr
 import * as THREE from './three@0.123.0/build/three.module.js';
 import { EffectComposer } from '//unpkg.com/three@0.123.0/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from '//unpkg.com/three@0.123.0/examples/jsm/postprocessing/RenderPass.js';
-import * as d3 from '//cdn.skypack.dev/d3@6';
 
 const graphElement = document.getElementById("fx-layer");
 
 if (graphElement) {
 
+    document.body.style.overflow = 'hidden';
     // Graph values
     const N = 30;
     const radius = 100;

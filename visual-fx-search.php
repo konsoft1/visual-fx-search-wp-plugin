@@ -6,6 +6,52 @@ Version: 1.0
 Author: yuari@konsoft
 */
 
+function my_custom_plugin_load_custom_block_template($template)
+{
+    global $post;
+
+    if (is_single() && has_category('visual-text', $post)) {
+        $block_template = plugin_dir_path(__FILE__) . 'templates/single-visual-text.html';
+
+        if (file_exists($block_template)) {
+            // Include the custom header
+            include plugin_dir_path(__FILE__) . 'templates/header-visual-text.php';
+
+            // Parse and render the blocks
+            $template_content = file_get_contents($block_template);
+            echo do_blocks($template_content);
+
+            // Include the custom footer
+            include plugin_dir_path(__FILE__) . 'templates/footer-visual-text.php';
+
+            // Prevent WordPress from continuing to load the default template
+            exit;
+        }
+    }
+
+    return $template;
+}
+add_filter('template_include', 'my_custom_plugin_load_custom_block_template');
+
+function my_custom_plugin_enqueue_styles()
+{
+    if (is_single() && has_category('visual-text')) {
+        // Enqueue the main stylesheet
+        wp_enqueue_style('style-handle', get_stylesheet_uri());
+
+        // Enqueue other theme-specific styles if necessary
+        // Example for Twenty Twenty-Four theme
+        wp_enqueue_style('twenty-twenty-four-style', get_template_directory_uri() . '/style.css');
+        wp_enqueue_style('visual-fx-stylesheet', plugin_dir_url(__FILE__) . 'css/fx.css', false, '1.0', 'all');
+        wp_enqueue_style('visual-fx-single-stylesheet', plugin_dir_url(__FILE__) . 'css/fx-single.css', false, '1.0', 'all');
+
+        // Enqueue block editor styles (if your theme relies on these)
+        wp_enqueue_style('wp-block-library');
+    }
+}
+add_action('wp_enqueue_scripts', 'my_custom_plugin_enqueue_styles');
+
+// search page
 function visual_fx_search_shortcode($atts)
 {
     $atts = array_change_key_case((array)$atts, CASE_LOWER);
@@ -57,22 +103,24 @@ function visual_fx_search_shortcode($atts)
             while ($query->have_posts()) {
                 $query->the_post();
         ?>
-            <div class="post">
-                <h4 class="post-title"><!-- <a href="<?php the_permalink(); ?>"> --><?php the_title(); ?></h4>
-                <?php the_excerpt(); ?>
-            </div>
+            <a class="post-link" href="<?php the_permalink(); ?>">
+                <div class="post">
+                    <h4 class="post-title"><?php the_title(); ?></h4>
+                    <?php the_excerpt(); ?>
+                </div>
+            </a>
         <?php
             }
         ?>
         <?php
-                // Pagination
+            // Pagination
         ?>
         <div class="pagination">
             <?php
-                echo paginate_links(array(
-                    'total' => $query->max_num_pages,
-                    'current' => $paged
-                ));
+            echo paginate_links(array(
+                'total' => $query->max_num_pages,
+                'current' => $paged
+            ));
             ?>
         </div>
     </div>
@@ -88,32 +136,32 @@ function visual_fx_search_shortcode($atts)
 }
 add_shortcode('visual_fx_search', 'visual_fx_search_shortcode');
 
-// Enqueue scripts and styles
 function enqueue_visual_fx_search_scripts()
 {
-    //wp_enqueue_script('jquery');
-    wp_enqueue_style('visual-fx-search-stylesheet', plugin_dir_url(__FILE__) . 'css/fx.css', false, '1.0', 'all');
-    wp_enqueue_script(
-        'force-graph', // Handle for the script
-        //'https://unpkg.com/3d-force-graph@1.66.6/dist/3d-force-graph.min.js', // URL of the external script
-        plugin_dir_url(__FILE__) . 'js/3d-force-graph@1.66.6/dist/3d-force-graph.min.js', // URL of the external script
-        array(), // Dependencies (none in this case)
-        null, // Version number (optional)
-        true // Load script in footer
-    );
-    wp_enqueue_script('visual-fx-search-script', plugin_dir_url(__FILE__) . 'js/fx1.js', array(/* 'jquery',  */'force-graph'), null, true);
-    /* wp_localize_script('visual-fx-search-script', 'custom_ajax_object', array(
+    if (is_page('visual-fx-search')) {
+        //wp_enqueue_script('jquery');
+        wp_enqueue_style('visual-fx-stylesheet', plugin_dir_url(__FILE__) . 'css/fx.css', false, '1.0', 'all');
+        wp_enqueue_style('visual-fx-search-stylesheet', plugin_dir_url(__FILE__) . 'css/fx-search.css', false, '1.0', 'all');
+        wp_enqueue_script(
+            'force-graph', // Handle for the script
+            //'https://unpkg.com/3d-force-graph@1.66.6/dist/3d-force-graph.min.js', // URL of the external script
+            plugin_dir_url(__FILE__) . 'js/3d-force-graph@1.66.6/dist/3d-force-graph.min.js', // URL of the external script
+            array(), // Dependencies (none in this case)
+            null, // Version number (optional)
+            true // Load script in footer
+        );
+        wp_enqueue_script('visual-fx-search-script', plugin_dir_url(__FILE__) . 'js/fx1.js', array(/* 'jquery',  */'force-graph'), null, true);
+        /* wp_localize_script('visual-fx-search-script', 'custom_ajax_object', array(
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce'    => wp_create_nonce('custom-ajax-nonce')
     )); */
+    }
 }
 add_action('wp_enqueue_scripts', 'enqueue_visual_fx_search_scripts');
 
 function add_module_type_to_script($tag, $handle, $src)
 {
-    // Check if the handle matches your script handle
     if ('visual-fx-search-script' === $handle) {
-        // Add the type="module" attribute to the script tag
         $tag = '<script src="' . esc_url($src) . '" type="module"></script>';
     }
     return $tag;
@@ -123,7 +171,6 @@ add_filter('script_loader_tag', 'add_module_type_to_script', 10, 3);
 // handle post
 function handle_search_ajax()
 {
-    // Verify nonce for security
     if (!check_ajax_referer('custom-ajax-nonce', 'nonce'))
         wp_die();
 
@@ -257,83 +304,3 @@ function calculate_description_value($description)
     //return $total_value / $total_letters;
     return $total_value;
 }
-
-/*
-function display_image_posts_with_pagination($atts)
-{
-    ob_start();
-    // Shortcode attributes
-    $atts = shortcode_atts(array(
-        'posts_per_page' => 10
-    ), $atts, 'image_posts');
-
-    // Query for posts
-    $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
-    $args = array(
-        'post_type'      => 'post', // Change to your custom post type if needed
-        'posts_per_page' => $atts['posts_per_page'],
-        'paged'          => $paged,
-        'post_status'    => 'publish'
-    );
-
-    $query = new WP_Query($args);
-
-    if ($query->have_posts()) {
-        echo '<div class="user-posts">';
-        while ($query->have_posts()) {
-            $query->the_post();
-    ?>
-            <div class="post-item">
-                <h4><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h4>
-                <div class="post-thumbnail">
-                    <?php if (has_post_thumbnail()) {
-                    echo '<a href="' . get_the_post_thumbnail_url() . '" download>';
-                        the_post_thumbnail();
-                    echo '</a>';
-                    } ?>
-                </div>
-                <div class="post-excerpt">
-                    <?php the_excerpt(); ?>
-                </div>
-                <div class="post-images">
-                    <?php
-                    $attachments = array_keys(get_attached_media('image', get_the_ID()));
-                    echo wp_get_attachment_image($attachments[0], 'thumbnail');
-                    echo '<span>+</span>';
-                    echo wp_get_attachment_image($attachments[1], 'thumbnail');
-                    echo '<span>=</span>';
-                    echo wp_get_attachment_image($attachments[2], 'thumbnail');
-                    ?>
-                </div>
-            </div>
-<?php
-        }
-        echo '</div>';
-
-        // Pagination
-        echo '<div class="pagination-container">';
-        $big = 999999999; // need an unlikely integer
-        echo paginate_links(array(
-            'base'      => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
-            'format'    => '?paged=%#%',
-            'current'   => max(1, get_query_var('paged')),
-            'total'     => $query->max_num_pages
-        ));
-        echo '</div>';
-
-        wp_reset_postdata();
-    } else {
-        echo '<div>No posts found.</div>';
-    }
-    return ob_get_clean();
-}
-add_shortcode('image_posts', 'display_image_posts_with_pagination');
-
-// Enqueue scripts and styles
-function enqueue_gallery_scripts()
-{
-    wp_enqueue_style('image-gallery-stylesheet', plugin_dir_url(__FILE__) . 'css/gallery.css', false, '1.0', 'all');
-    wp_enqueue_script('image-gallery-script', plugin_dir_url(__FILE__) . 'js/gallery.js', array('jquery'), null, true);
-}
-add_action('wp_enqueue_scripts', 'enqueue_gallery_scripts');
- */
