@@ -1,3 +1,7 @@
+body {
+    background-color: #000011;
+}
+
 .wp-block-group {
     position: unset !important;
 }
@@ -27,6 +31,10 @@
     text-align: right;
     flex-shrink: 0;
     align-self: end;
+}
+
+.entry-content {
+    margin-bottom: 5rem;
 }
 
 .entry-content p {

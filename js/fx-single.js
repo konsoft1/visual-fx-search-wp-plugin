@@ -7,7 +7,6 @@ const graphElement = document.getElementById("fx-layer");
 
 if (graphElement) {
 
-    //document.body.style.overflow = 'hidden';
     // Graph values
     const N = 30;
     const radius = 100;
@@ -94,11 +93,11 @@ if (graphElement) {
         
         if (window.innerWidth < 800) {
             postLPadRatio = 1;
-            postElem.style.paddingLeft = 0;
+            document.querySelectorAll('.entry-content p').forEach(elem => {elem.style.paddingLeft = 0;});
             postElem.style.marginTop = postW_px + 'px';
         } else {
             postLPadRatio = 0.5;
-            postElem.style.paddingLeft = postLPadRatio * postW_px * postPaddingLeftExtend + 'px';
+            document.querySelectorAll('.entry-content p').forEach(elem => {elem.style.paddingLeft = postLPadRatio * postW_px * postPaddingLeftExtend + 'px';});
             postElem.style.marginTop = postW_px * postLPadRatio / 2 * (1 - radiusShrink) * 2 + 'px';
         }
         const radius_px = postW_px * postLPadRatio / 2 * radiusShrink;

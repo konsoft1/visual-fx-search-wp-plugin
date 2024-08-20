@@ -7,7 +7,6 @@ const graphElement = document.getElementById("fx-layer");
 
 if (graphElement) {
 
-    document.body.style.overflow = 'hidden';
     // Graph values
     const N = 30;
     const radius = 100;
