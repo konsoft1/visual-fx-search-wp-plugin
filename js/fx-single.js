@@ -88,6 +88,8 @@ if (graphElement) {
         const vh_px = window.innerHeight;
         const titleblock = document.getElementById('title-block');
         const offsetY_px = titleblock.offsetTop + titleblock.clientHeight;
+        //document.querySelectorAll('.entry-content p').forEach(elem => {elem.style.maxWidth = (vh_px - offsetY_px) / postLPadRatio + 'px';});
+
         const offsetX_px = postElem.offsetLeft;
         const postW_px = postElem.clientWidth;
         
@@ -100,8 +102,9 @@ if (graphElement) {
             document.querySelectorAll('.entry-content p').forEach(elem => {elem.style.paddingLeft = postLPadRatio * postW_px * postPaddingLeftExtend + 'px';});
             postElem.style.marginTop = postW_px * postLPadRatio / 2 * (1 - radiusShrink) * 2 + 'px';
         }
-        const radius_px = postW_px * postLPadRatio / 2 * radiusShrink;
-        const centerY_px = offsetY_px + 1 + postW_px * postLPadRatio / 2;
+        const sphereBoxH_px = postW_px * postLPadRatio < vh_px - offsetY_px ? postW_px * postLPadRatio : vh_px - offsetY_px;
+        const radius_px = sphereBoxH_px / 2 * radiusShrink;
+        const centerY_px = offsetY_px + 1 + radius_px / radiusShrink;
         ratio = 1.0 * radius / radius_px;
         vh_u = vh_px * ratio;
         //graph.camera().fov = 10;
