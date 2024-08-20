@@ -8,6 +8,10 @@
     margin-left: 1rem;
 }
 
+#title-block {
+    place-content: flex-end;
+}
+
 .post-title {
     color: white;
     flex-grow: 1;
@@ -23,5 +27,6 @@
 
 .entry-content p {
     color: white;
-    margin-left: 50% !important;
+    padding-left: 50%;
+    text-indent: 10px;
 }

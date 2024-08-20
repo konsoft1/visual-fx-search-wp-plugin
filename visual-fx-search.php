@@ -47,6 +47,22 @@ function my_custom_plugin_enqueue_styles()
 
         // Enqueue block editor styles (if your theme relies on these)
         wp_enqueue_style('wp-block-library');
+
+        wp_enqueue_script(
+            'force-graph', // Handle for the script
+            plugin_dir_url(__FILE__) . 'js/3d-force-graph@1.66.6/dist/3d-force-graph.min.js', // URL of the external script
+            array(), // Dependencies (none in this case)
+            null, // Version number (optional)
+            true // Load script in footer
+        );
+        wp_enqueue_script('visual-fx-single-script', plugin_dir_url(__FILE__) . 'js/fx-single.js', array(/* 'jquery',  */'force-graph'), null, true);
+
+        $filtered_content = apply_filters('the_content', get_the_content());
+        $clean_content = wp_strip_all_tags($filtered_content);
+        $seed = calculate_description_value(sanitize_text_field($clean_content));
+        wp_localize_script('visual-fx-single-script', 'localized_obj', array(
+            'seed' => $seed
+        ));
     }
 }
 add_action('wp_enqueue_scripts', 'my_custom_plugin_enqueue_styles');
@@ -161,7 +177,7 @@ add_action('wp_enqueue_scripts', 'enqueue_visual_fx_search_scripts');
 
 function add_module_type_to_script($tag, $handle, $src)
 {
-    if ('visual-fx-search-script' === $handle) {
+    if ('visual-fx-search-script' === $handle || 'visual-fx-single-script' === $handle) {
         $tag = '<script src="' . esc_url($src) . '" type="module"></script>';
     }
     return $tag;
