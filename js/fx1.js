@@ -331,7 +331,7 @@ if (graphElement) {
                 graph.d3Force('radial' + (idx + 1), forceRadial3D(0, 0, centerY, 0, d => d.group === idx + 1 ? 0.1 : 0));
 
                 sphere[idx].position.set(0, centerY, 0);
-                graph.scene().add(sphere[idx]);
+                //graph.scene().add(sphere[idx]);
             }
 
             return { nodes, links };
